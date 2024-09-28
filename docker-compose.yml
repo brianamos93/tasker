@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:latest
-    container_name: taskmanager
+    container_name: tasker
     restart: always
     ports:
       - "5432:5432"
@@ -13,7 +13,7 @@ services:
       - init:/docker-entrypoint-initdb.d
   pgadmin:
     image: dpage/pgadmin4:latest
-    container_name: pgadmin4_taskmanger
+    container_name: pgadmin4_tasker
     restart: always
     ports:
       - "8888:80"

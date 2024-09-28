@@ -1,0 +1,2 @@
+PUT http://localhost:3000/todos/completed/3 HTTP/1.1
+Content-Type: application/json
