@@ -1,5 +1,6 @@
 import express from "express";
 import todoRoutes from "./routes/todoRoutes";
+import userRoutes from "./routes/userRoutes"
 
 
 const cors = require('cors')
@@ -10,6 +11,7 @@ const app = express()
 app.use(cors())
 app.use(express.json())
 app.use("/", todoRoutes);
+app.use("/", userRoutes)
 app.use(middleware.requestLogger)
 
 
