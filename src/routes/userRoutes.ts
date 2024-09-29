@@ -13,7 +13,7 @@ interface User {
 
 router.get("/users", async (req: Request, res: Response) => {
 	try {
-		const result = await pool.query("SELECT * FROM users")
+		const result = await pool.query("SELECT id, username FROM users")
 		const users: User[] = result.rows
 		res.json(users)
 	} catch (error) {
@@ -30,7 +30,7 @@ router.post("/signup", async ( req: Request, res: Response ) => {
 
 	try {
 		const result = await pool.query(
-			"INSERT INTO users(username, email, passwordHash) VALUES($1, $2, $3) RETURNING *", [username, email, passwordHash]
+			"INSERT INTO users(username, email, password) VALUES($1, $2, $3) RETURNING *", [username, email, passwordHash]
 		)
 		const createdUser: User = result.rows[0]
 		res.status(201).json(createdUser)

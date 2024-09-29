@@ -7,6 +7,7 @@ interface Todo {
   id: number;
   task: string;
   completed: boolean;
+  userId: number;
 }
 
 router.get("/", (req: Request, res: Response) => {
@@ -25,7 +26,7 @@ router.get("/todos", async (req: Request, res: Response) => {
  });
 
 router.post("/todos", async (req: Request, res: Response) => {
-   const { task } = req.body;
+   const { task, userid } = req.body;
 
    // TypeScript type-based input validation
    if (typeof task !== "string" || task.trim() === "") {
@@ -34,8 +35,8 @@ router.post("/todos", async (req: Request, res: Response) => {
 
    try {
      const result = await pool.query(
-       "INSERT INTO todos (task) VALUES ($1) RETURNING *",
-       [task]
+       "INSERT INTO todos (task, userid) VALUES ($1, $2) RETURNING *",
+       [task, userid]
      );
      const createdTodo: Todo = result.rows[0];
      res.status(201).json(createdTodo);
