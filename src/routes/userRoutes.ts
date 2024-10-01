@@ -56,4 +56,21 @@ router.get("/users/:id", async (req: Request, res: Response ) => {
 	  }
 })
 
+router.delete("/user/:id", async (req: Request, res: Response) => {
+	const userID = parseInt(req.params.id, 10);
+ 
+	// TypeScript type-based input validation
+	if (isNaN(userID)) {
+	  return res.status(400).json({ error: "Invalid user ID" });
+	}
+ 
+	try {
+	  await pool.query("DELETE FROM users WHERE id = $1", [userID]);
+	  res.sendStatus(200);
+	} catch (error) {
+	  console.error("Error deleting user", error);
+	  res.status(500).json({ error: "Error deleting user" });
+	}
+  });
+
 export default router
