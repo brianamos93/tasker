@@ -13,7 +13,7 @@ interface User {
 
 router.get("/users", async (req: Request, res: Response) => {
 	try {
-		const result = await pool.query("SELECT id, username FROM users")
+		const result = await pool.query("SELECT users.id, users.username, todos.task, todos.completed, todos. FROM users INNER JOIN todos ON users.id = todos.userid")
 		const users: User[] = result.rows
 		res.json(users)
 	} catch (error) {
@@ -38,6 +38,22 @@ router.post("/signup", async ( req: Request, res: Response ) => {
 		console.error("Error signing up", error);
 		res.status(500).json({ error: "Error signing up" });
 	}
+})
+
+router.get("/users/:id", async (req: Request, res: Response ) => {
+	const userID = parseInt(req.params.id, 10);
+	// TypeScript type-based input validation
+	if (isNaN(userID)) {
+		return res.status(400).json({ error: "Invalid todo ID" });
+	  }
+	  try {
+		const result = await pool.query("SELECT todos.task FROM users JOIN todos ON users.id = todos.userid WHERE users.id = $1 ", [userID]);
+		const user: User[] = result.rows;
+		res.json(user);
+	  } catch (error) {
+		console.error("Error fetching todos", error);
+		res.status(500).json({ error: "Error fetching todos" });
+	  }
 })
 
 export default router
