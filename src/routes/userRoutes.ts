@@ -73,5 +73,23 @@ router.delete("/user/:id", async (req: Request, res: Response) => {
 	}
   });
 
-  
+router.put("/user/:id", async (req: Request, res: Response) => {
+	const userID = parseInt(req.params.id, 10);
+	const { password } = req.body;
+
+	const saltRounds = 10
+	const passwordHash = await bcrypt.hash(password, saltRounds)
+
+	try {
+		await pool.query("UPDATE users SET password = $1 WHERE id = $2", [
+			passwordHash,
+			userID,
+     	]);
+     	res.sendStatus(200);
+   	} catch (error) {
+	console.error("Error updating todo", error);
+	res.sendStatus(500).json({ error: "Error updating todo" });
+	}
+});
+
 export default router
