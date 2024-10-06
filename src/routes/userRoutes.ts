@@ -1,6 +1,7 @@
-import { Router, Request, Response } from "express";
+import { Router, Request, Response, response } from "express";
 import pool from "../utils/db";
 const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
 
 const router = Router();
 
@@ -10,6 +11,36 @@ interface User {
 	email: string,
 	password: string
 }
+
+router.post("/login", async (req: Request, res: Response) => {
+	const { username, password } = req.body
+	try {
+		const user = await pool.query("SELECT * FROM users WHERE username = $1", [username])
+
+		const passwordCorrect = user === null
+		? false: await bcrypt.compare(password, user.rows[0].password)
+
+		if (!(user && passwordCorrect)) {
+			return res.status(401).json({
+				error: "invalid username or password"
+			})
+		}
+
+		const userForToken = {
+			username: user.rows[0].user,
+			id: user.rows[0].id,
+		}
+
+		const token = jwt.sign(userForToken, process.env.SECRET)
+
+		res
+		.status(200)
+		.send({ token, username: user.rows[0].user})
+	} catch (error) {
+		console.error("Error loginning in", error)
+		res.status(500).json({ error: "Error logging in" })
+	}
+})
 
 router.get("/users", async (req: Request, res: Response) => {
 	try {
