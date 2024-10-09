@@ -1,5 +1,8 @@
 import { Router, Request, Response } from "express";
+const jwt = require('jsonwebtoken')
 import pool from "../utils/db";
+import { ParamsDictionary } from "express-serve-static-core";
+import { ParsedQs } from "qs";
 
 const router = Router();
 
@@ -8,6 +11,14 @@ interface Todo {
   task: string;
   completed: boolean;
   userId: number;
+}
+
+const getTokenFrom = (req: Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>) => {
+  const authorization = req.get('Authorization')
+  if (authorization && authorization.startsWith('Bearer ')) {
+    return authorization.replace('Bearer ', '')
+  }
+  return null
 }
 
 router.get("/", (req: Request, res: Response) => {
@@ -26,7 +37,14 @@ router.get("/todos", async (req: Request, res: Response) => {
  });
 
 router.post("/todos", async (req: Request, res: Response) => {
-   const { task, userid } = req.body;
+   const { task } = req.body;
+   const decodedToken = jwt.verify(getTokenFrom(req), process.env.SECRET)
+   if (!decodedToken.id) {
+    return res.status(401).json({ error: 'token invalid'})
+   }
+   const user = await pool.query(
+    "SELECT * FROM users WHERE id = $1", [decodedToken.id]
+   )
 
    // TypeScript type-based input validation
    if (typeof task !== "string" || task.trim() === "") {
@@ -36,7 +54,7 @@ router.post("/todos", async (req: Request, res: Response) => {
    try {
      const result = await pool.query(
        "INSERT INTO todos (task, userid) VALUES ($1, $2) RETURNING *",
-       [task, userid]
+       [task, user.rows[0].id]
      );
      const createdTodo: Todo = result.rows[0];
      res.status(201).json(createdTodo);
