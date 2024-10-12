@@ -20,8 +20,23 @@ const getTokenFrom = (req: Request) => {
 }
 
 async function tasklookup(todoID: Number) {
-  return await pool.query("SELECT id from todos WHERE id = $1", [todoID]);
+  return await pool.query({text: "SELECT id from todos WHERE id = $1", values: [todoID], rowMode: 'array'});
 }
+
+async function taskUser(todoID: number) {
+  return await pool.query({text: "SELECT userid FROM todos WHERE id = $1", values: [todoID], rowMode: 'array'});
+}
+
+async function tokenUser(decodedToken: any) {
+  return await pool.query({
+    text: "SELECT id FROM users WHERE id = $1", values: [decodedToken.id], rowMode: 'array'}
+  );
+}
+
+function decodeToken(req: Request) {
+  return jwt.verify(getTokenFrom(req), process.env.SECRET);
+}
+
 
 
 router.get("/", (req: Request, res: Response) => {
@@ -73,7 +88,7 @@ router.delete("/todos/:id", async (req: Request, res: Response) => {
    if (taskcheck.rowCount == 0) {
     return res.status(401).json({ error: 'task does not exist'})
    }
-   const decodedToken = jwt.verify(getTokenFrom(req), process.env.SECRET)
+   const decodedToken = decodeToken(req)
    if (!decodedToken.id) {
     return res.status(401).json({ error: 'token invalid'})
    }
@@ -82,10 +97,8 @@ router.delete("/todos/:id", async (req: Request, res: Response) => {
      return res.status(400).json({ error: "Invalid todo ID" });
    }
 
-   const user = await pool.query(
-    "SELECT * FROM users WHERE id = $1", [decodedToken.id]
-   )
-   const taskuser = await pool.query("SELECT * FROM todos WHERE id = $1", [todoID])
+   const user = await tokenUser(decodedToken)
+   const taskuser = await taskUser(todoID)
    if (user.rows[0] !== taskuser.rows[3]) {
     return res.status(400).json({ error: "User not authorized" })
    }
@@ -105,8 +118,7 @@ router.put("/todos/:id", async (req: Request, res: Response) => {
    if (taskcheck.rowCount == 0) {
     return res.status(401).json({ error: 'task does not exist'})
    }
-
-   const decodedToken = jwt.verify(getTokenFrom(req), process.env.SECRET)
+   const decodedToken = decodeToken(req)
    if (!decodedToken.id) {
     return res.status(401).json({ error: 'token invalid'})
    }
@@ -114,12 +126,10 @@ router.put("/todos/:id", async (req: Request, res: Response) => {
    if (isNaN(todoID)) {
      return res.status(400).json({ error: "Invalid todo ID" });
    }
-
-   const user = await pool.query(
-    "SELECT * FROM users WHERE id = $1", [decodedToken.id]
-   )
-   const taskuser = await pool.query("SELECT * FROM todos WHERE id = $1", [todoID])
-   if (user.rows[0] !== taskuser.rows[3]) {
+ 
+   const user = await tokenUser(decodedToken)
+   const taskuser = await taskUser(todoID)
+   if (user.rows[0].toString !== taskuser.rows[0].toString) {
     return res.status(400).json({ error: "User not authorized" })
    }
 
@@ -147,23 +157,20 @@ router.put("/todos/completed/:id", async (req: Request, res: Response) => {
   if (taskcheck.rowCount == 0) {
    return res.status(401).json({ error: 'task does not exist'})
   }
-  const decodedToken = jwt.verify(getTokenFrom(req), process.env.SECRET)
-   if (!decodedToken.id) {
-    return res.status(401).json({ error: 'token invalid'})
-   }
-   // TypeScript type-based input validation
-   if (isNaN(todoID)) {
-     return res.status(400).json({ error: "Invalid todo ID" });
-   }
+  const decodedToken = decodeToken(req)
+  if (!decodedToken.id) {
+   return res.status(401).json({ error: 'token invalid'})
+  }
+  // TypeScript type-based input validation
+  if (isNaN(todoID)) {
+    return res.status(400).json({ error: "Invalid todo ID" });
+  }
 
-   const user = await pool.query(
-    "SELECT * FROM users WHERE id = $1", [decodedToken.id]
-   )
-   const taskuser = await pool.query("SELECT * FROM todos WHERE id = $1", [todoID])
-   if (user.rows[0] !== taskuser.rows[3]) {
-    return res.status(400).json({ error: "User not authorized" })
-   }
-
+  const user = await tokenUser(decodedToken)
+  const taskuser = await taskUser(todoID)
+  if (user.rows[0].toString !== taskuser.rows[0].toString) {
+   return res.status(400).json({ error: "User not authorized" })
+  }
   try {
     await pool.query("UPDATE todos SET completed = TRUE WHERE id = $1", [
       todoID,
@@ -181,23 +188,20 @@ router.put("/todos/incomplete/:id", async (req: Request, res: Response) => {
   if (taskcheck.rowCount == 0) {
    return res.status(401).json({ error: 'task does not exist'})
   }
-  const decodedToken = jwt.verify(getTokenFrom(req), process.env.SECRET)
-   if (!decodedToken.id) {
-    return res.status(401).json({ error: 'token invalid'})
-   }
-   // TypeScript type-based input validation
-   if (isNaN(todoID)) {
-     return res.status(400).json({ error: "Invalid todo ID" });
-   }
+  const decodedToken = decodeToken(req)
+  if (!decodedToken.id) {
+   return res.status(401).json({ error: 'token invalid'})
+  }
+  // TypeScript type-based input validation
+  if (isNaN(todoID)) {
+    return res.status(400).json({ error: "Invalid todo ID" });
+  }
 
-   const user = await pool.query(
-    "SELECT * FROM users WHERE id = $1", [decodedToken.id]
-   )
-   const taskuser = await pool.query("SELECT * FROM todos WHERE id = $1", [todoID])
-   if (user.rows[0] !== taskuser.rows[3]) {
-    return res.status(400).json({ error: "User not authorized" })
-   }
-
+  const user = await tokenUser(decodedToken)
+  const taskuser = await taskUser(todoID)
+  if (user.rows[0].toString !== taskuser.rows[0].toString) {
+   return res.status(400).json({ error: "User not authorized" })
+  }
   try {
     await pool.query("UPDATE todos SET completed = FALSE WHERE id = $1", [
       todoID,
@@ -209,3 +213,4 @@ router.put("/todos/incomplete/:id", async (req: Request, res: Response) => {
   }
 });
 export default router;
+
