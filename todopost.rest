@@ -1,6 +1,6 @@
 POST http://localhost:3000/todos/ HTTP/1.1
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzI4NDc4MDU3LCJleHAiOjE3Mjg0ODE2NTd9.eBaORY5XsBuVhVWDNf7HavX8i-IIEPV5oLCdDhWTv0w
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzI4NDc5NzMzLCJleHAiOjE3Mjg0ODMzMzN9.dmEAmNdg8uOmjP9x63irvb5CIi9JVWLKQ6CngNHr93
 
 {
 	"task": "auth task test"
