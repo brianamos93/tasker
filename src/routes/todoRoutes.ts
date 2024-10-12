@@ -20,16 +20,16 @@ const getTokenFrom = (req: Request) => {
 }
 
 async function tasklookup(todoID: Number) {
-  return await pool.query({text: "SELECT id from todos WHERE id = $1", values: [todoID], rowMode: 'array'});
+  return await pool.query("SELECT id from todos WHERE id = $1", [todoID]);
 }
 
 async function taskUser(todoID: number) {
-  return await pool.query({text: "SELECT userid FROM todos WHERE id = $1", values: [todoID], rowMode: 'array'});
+  return await pool.query("SELECT userid FROM todos WHERE id = $1", [todoID]);
 }
 
 async function tokenUser(decodedToken: any) {
-  return await pool.query({
-    text: "SELECT id FROM users WHERE id = $1", values: [decodedToken.id], rowMode: 'array'}
+  return await pool.query(
+ "SELECT id FROM users WHERE id = $1",[decodedToken.id]
   );
 }
 
@@ -99,7 +99,7 @@ router.delete("/todos/:id", async (req: Request, res: Response) => {
 
    const user = await tokenUser(decodedToken)
    const taskuser = await taskUser(todoID)
-   if (user.rows[0] !== taskuser.rows[3]) {
+   if (user.rows[0].id !== taskuser.rows[3].userid) {
     return res.status(400).json({ error: "User not authorized" })
    }
    try {
@@ -129,7 +129,7 @@ router.put("/todos/:id", async (req: Request, res: Response) => {
  
    const user = await tokenUser(decodedToken)
    const taskuser = await taskUser(todoID)
-   if (user.rows[0].toString !== taskuser.rows[0].toString) {
+   if (user.rows[0].id !== taskuser.rows[0].userid) {
     return res.status(400).json({ error: "User not authorized" })
    }
 
@@ -168,7 +168,7 @@ router.put("/todos/completed/:id", async (req: Request, res: Response) => {
 
   const user = await tokenUser(decodedToken)
   const taskuser = await taskUser(todoID)
-  if (user.rows[0].toString !== taskuser.rows[0].toString) {
+  if (user.rows[0].id !== taskuser.rows[0].userid) {
    return res.status(400).json({ error: "User not authorized" })
   }
   try {
@@ -199,7 +199,7 @@ router.put("/todos/incomplete/:id", async (req: Request, res: Response) => {
 
   const user = await tokenUser(decodedToken)
   const taskuser = await taskUser(todoID)
-  if (user.rows[0].toString !== taskuser.rows[0].toString) {
+  if (user.rows[0].id !== taskuser.rows[0].userid) {
    return res.status(400).json({ error: "User not authorized" })
   }
   try {

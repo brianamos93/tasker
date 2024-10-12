@@ -1,3 +1,3 @@
 PUT http://localhost:3000/todos/incomplete/3 HTTP/1.1
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzI4NzQxMDg1LCJleHAiOjE3Mjg3NDQ2ODV9.925WjHcAWzGVNQltNYmelp_o3V6e-B3-4INJR4dFoTw
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzI4NzQ1OTk3LCJleHAiOjE3Mjg3NDk1OTd9.i_9u0L6pqfJubCmpPg5dMEk2WPiwF0iHOgvnhE_E1-E
