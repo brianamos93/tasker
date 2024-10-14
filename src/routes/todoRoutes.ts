@@ -115,13 +115,16 @@ router.put("/todos/:id", async (req: Request, res: Response) => {
    const todoID = parseInt(req.params.id, 10);
    const { task } = req.body;
    const taskcheck = await tasklookup(todoID)
+
    if (taskcheck.rowCount == 0) {
     return res.status(401).json({ error: 'task does not exist'})
    }
+
    const decodedToken = decodeToken(req)
    if (!decodedToken.id) {
     return res.status(401).json({ error: 'token invalid'})
    }
+
    // TypeScript type-based input validation
    if (isNaN(todoID)) {
      return res.status(400).json({ error: "Invalid todo ID" });
@@ -129,6 +132,7 @@ router.put("/todos/:id", async (req: Request, res: Response) => {
  
    const user = await tokenUser(decodedToken)
    const taskuser = await taskUser(todoID)
+
    if (user.rows[0].id !== taskuser.rows[0].userid) {
     return res.status(400).json({ error: "User not authorized" })
    }
@@ -139,7 +143,7 @@ router.put("/todos/:id", async (req: Request, res: Response) => {
    }
 
    try {
-     await pool.query("UPDATE todos SET task = $1 WHERE id = $2", [
+     await pool.query("UPDATE todos SET task = $1 ,date_updated = CURRENT_TIMESTAMP WHERE id = $2", [
        task,
        todoID,
      ]);
@@ -172,7 +176,7 @@ router.put("/todos/completed/:id", async (req: Request, res: Response) => {
    return res.status(400).json({ error: "User not authorized" })
   }
   try {
-    await pool.query("UPDATE todos SET completed = TRUE WHERE id = $1", [
+    await pool.query("UPDATE todos SET completed = TRUE ,date_updated=CURRENT_TIMESTAMP WHERE id = $1", [
       todoID,
     ]);
     res.sendStatus(200);
@@ -203,7 +207,7 @@ router.put("/todos/incomplete/:id", async (req: Request, res: Response) => {
    return res.status(400).json({ error: "User not authorized" })
   }
   try {
-    await pool.query("UPDATE todos SET completed = FALSE WHERE id = $1", [
+    await pool.query("UPDATE todos SET completed = FALSE ,date_updated=CURRENT_TIMESTAMP WHERE id = $1", [
       todoID,
     ]);
     res.sendStatus(200);
