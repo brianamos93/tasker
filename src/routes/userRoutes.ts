@@ -1,7 +1,10 @@
-import { Router, Request, Response, response } from "express";
+import { Router, Request, Response } from "express";
 import pool from "../utils/db";
+import { strict } from "assert";
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
+import { serialize } from "cookie";
+const cookie = require("cookie")
 
 const router = Router();
 
@@ -14,9 +17,15 @@ interface User {
 
 router.post("/login", async (req: Request, res: Response) => {
 	const { username, password } = req.body
+	console.log(req)
 	try {
 		const user = await pool.query("SELECT * FROM users WHERE username = $1", [username])
 
+		if (user.rowCount === 0) {
+			return res.status(401).json({
+				error: "invalid username or password"
+			})
+		}
 		const passwordCorrect = user === null
 		? false: await bcrypt.compare(password, user.rows[0].password)
 
@@ -36,10 +45,18 @@ router.post("/login", async (req: Request, res: Response) => {
 			{ expiresIn: 60*60 }
 		)
 
+		const seralized = serialize("OutsideJTW", token, {
+			httpOnly: true,
+			secure: process.env.NODE_ENV === "production",
+			sameSite: "none",
+			maxAge: 60*60,
+			path: "/",
+		  });
+
 		
 		res
 		.status(200)
-		.send({ token, username: user.rows[0].user})
+		.send({token, userForToken})
 	} catch (error) {
 		console.error("Error loginning in", error)
 		res.status(500).json({ error: "Error logging in" })

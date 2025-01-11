@@ -54,6 +54,29 @@ router.get("/todos", async (req: Request, res: Response) => {
    }
  });
 
+ router.get("/todos/list", async (req: Request, res: Response) => {
+  try {
+    const result = await pool.query("SELECT id FROM todos");
+    const todos: Todo[] = result.rows;
+    res.json(todos);
+  } catch (error) {
+    console.error("Error fetching todos", error);
+    res.status(500).json({ error: "Error fetching todos" });
+  }
+});
+
+router.get("/todos/:id", async (req: Request, res: Response) => {
+  const todoID = parseInt(req.params.id, 10);
+  try {
+    const result = await pool.query("SELECT * FROM todos WHERE id = $1", [todoID]);
+    const todos: Todo[] = result.rows;
+    res.json(todos);
+  } catch (error) {
+    console.error("Error fetching todos", error);
+    res.status(500).json({ error: "Error fetching todos" });
+  }
+});
+
 router.post("/todos", async (req: Request, res: Response) => {
    const { task } = req.body;
    const decodedToken = jwt.verify(getTokenFrom(req), process.env.SECRET)

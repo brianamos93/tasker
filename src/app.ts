@@ -1,3 +1,4 @@
+const cookieParser = require('cookie-parser')
 const express = require('express')
 
 
@@ -9,7 +10,11 @@ import todoRoutes from "./routes/todoRoutes";
 import userRoutes from "./routes/userRoutes";
 const middleware = require('./utils/middleware');
 
-app.use(cors());
+app.use(cookieParser())
+app.use(cors({
+	origin: "http://localhost:3000",
+	credentials: true,
+}));
 app.use(express.static('dist'))
 app.use(express.json());
 
