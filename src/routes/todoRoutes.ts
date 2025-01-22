@@ -20,10 +20,10 @@ const getTokenFrom = (req: Request) => {
 }
 
 async function tasklookup(todoID: Number) {
-  return await pool.query("SELECT id from todos WHERE id = $1", [todoID]);
+  return await pool.query("SELECT id FROM todos WHERE id = $1", [todoID]);
 }
 
-async function taskUser(todoID: number) {
+async function taskUser(todoID: Number) {
   return await pool.query("SELECT userid FROM todos WHERE id = $1", [todoID]);
 }
 
@@ -122,7 +122,8 @@ router.delete("/todos/:id", async (req: Request, res: Response) => {
 
    const user = await tokenUser(decodedToken)
    const taskuser = await taskUser(todoID)
-   if (user.rows[0].id !== taskuser.rows[3].userid) {
+   console.log(taskuser)
+   if (user.rows[0].id !== taskuser.rows[0].userid) {
     return res.status(400).json({ error: "User not authorized" })
    }
    try {

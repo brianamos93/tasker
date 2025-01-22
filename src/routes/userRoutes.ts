@@ -17,7 +17,6 @@ interface User {
 
 router.post("/login", async (req: Request, res: Response) => {
 	const { username, password } = req.body
-	console.log(req)
 	try {
 		const user = await pool.query("SELECT * FROM users WHERE username = $1", [username])
 
